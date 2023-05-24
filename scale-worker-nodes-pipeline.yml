@@ -1,0 +1,37 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: scale-worker-nodes-pipeline
+spec:
+  tasks:
+    - name: scale-worker-nodes-task
+      taskRef:
+        name: scale-worker-nodes
+      params:
+        - name: cluster-name
+          value: cluster1
+        - name: worker-count
+          value: "3"  # Desired number of worker nodes
+    - name: wait-for-scaling-task
+      taskRef:
+        name: wait-for-scaling
+      params:
+        - name: cluster-name
+          value: cluster1
+        - name: expected-worker-count
+          value: "3"  # Expected number of worker nodes after scaling
+      runAfter:
+        - scale-worker-nodes-task
+    - name: call-ansible-job-template-task
+      taskRef:
+        name: call-ansible-job-template
+      params:
+        - name: aap-api-url
+          value: "https://aap23-aap.apps.cluster-tf58q.tf58q.sandbox290.opentlc.com"
+        - name: aap-job-template
+          value: "Demo Job Template"
+        - name: aap-token
+          value: "YfWPQOQbX9mIlZX4ZxpCcjfPc0rgHQ"
+      runAfter:
+        - wait-for-scaling-task
+

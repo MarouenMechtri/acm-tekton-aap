@@ -1,0 +1,31 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: wait-for-scaling
+spec:
+  params:
+    - default: cluster1
+      description: The name of the OpenShift cluster
+      name: cluster-name
+      type: string
+    - default: cluster1-worker
+      description: The machine pool
+      name: machinepool_name
+      type: string
+    - name: expected-worker-count
+      description: The expected number of worker nodes after scaling
+  steps:
+    - name: wait-for-scaling
+      image: quay.io/openshift/origin-cli:latest
+      command:
+        - sh
+        - -c
+        - |
+          echo Check replicas count is equals $(inputs.params.expected-worker-count)
+          current_count=0
+          while [ "$current_count" -ne $(inputs.params.expected-worker-count) ]; do
+            current_count=$(oc -n $(inputs.params.cluster-name) get machinepool $(inputs.params.machinepool_name) -o jsonpath='{.status.replicas}')
+            echo "Current replicas count: ${current_count}"
+            sleep 5
+          done
+          echo -----------------------------------

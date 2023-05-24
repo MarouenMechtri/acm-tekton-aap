@@ -1,0 +1,32 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: scale-worker-nodes
+spec:
+  params:
+    - default: cluster1
+      description: The cluster namespace
+      name: cluster-name
+      type: string
+    - default: cluster1-worker
+      description: The machine pool
+      name: machinepool_name
+      type: string
+    - default: '3'
+      description: The desired number of worker nodes
+      name: worker-count
+      type: string
+  steps:
+    - name: scale-worker-nodes
+      image: quay.io/openshift/origin-cli:latest
+      command:
+        - sh
+        - -c
+        - |
+          echo "Scaling $(inputs.params.machinepool_name) to $(inputs.params.worker-count) node(s)"
+
+          oc -n $(inputs.params.cluster-name) patch machinepool $(inputs.params.machinepool_name) --type merge -p '{ "spec": {"replicas": $(inputs.params.worker-count) } }'
+
+          echo ----------------------------------- 
+
+

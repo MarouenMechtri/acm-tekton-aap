@@ -1,0 +1,26 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: call-ansible-job-template
+spec:
+  params:
+    - name: aap-api-url
+      description: The URL of the Ansible Automation Platform API
+      default: https://aap23-aap.apps.cluster-tf58q.tf58q.sandbox290.opentlc.com
+    - name: aap-job-template
+      description: The name or ID of the Ansible Automation Platform job template
+      default: "Demo Job Template"
+      type: string
+    - name: aap-token
+      description: The API token for authentication
+      default: "YfWPQOQbX9mIlZX4ZxpCcjfPc0rgHQ"
+      type: string
+  steps:
+    - name: call-job-template
+      image: quay.io/openshift/origin-cli:latest
+      command:
+        - sh
+        - -c
+        - |
+          curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $(inputs.params.aap-token)" \
+          $(inputs.params.aap-api-url)/api/v2/job_templates/7/launch/
